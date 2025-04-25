@@ -9,46 +9,78 @@ public class PlayerControler : MonoBehaviour
     Rigidbody2D rb;
     SpriteRenderer sr;
     Animator animator;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
+    //Start is called once before the first execution of Update after the MonoBehaviour is created
+
+    public float velocidadMovimiento = 10f;
+    public float fuerzaSalto = 20f;
+    public LayerMask capaSuelo;
+    public Transform verificadorSuelo;
+    public float radioVerificacion = 0.2f;
+    bool enSuelo;
+
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        
+        sr = GetComponent<SpriteRenderer>();
+        animator = GetComponent<Animator>();
+
     }
 
     // Update is called once per frame
     void Update()
     {
 
+        //logs
+
+
         moverseHorizontalmente();
         setupSalto();
-        
+
     }
 
     void setupSalto()
     {
-        if (Input.GetKey(KeyCode.Space))
+        // Verifica si está en el suelo antes de permitir el salto
+        enSuelo = Physics2D.OverlapCircle(verificadorSuelo.position, radioVerificacion, capaSuelo);
+
+        if (Input.GetKeyDown(KeyCode.Space) && enSuelo)
         {
-            rb.linearVelocityY = 20;
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, fuerzaSalto);
         }
     }
 
     void moverseHorizontalmente()
     {
-        rb.linearVelocityX = 0;
+        float movimiento = 0f;
         animator.SetInteger("Estado", 0);
+
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            rb.linearVelocityX = 10;
+            movimiento = velocidadMovimiento;
             sr.flipX = false;
             animator.SetInteger("Estado", 1);
         }
-
-        if (Input.GetKey(KeyCode.LeftArrow))
+        else if (Input.GetKey(KeyCode.LeftArrow))
         {
-            rb.linearVelocityX = -10;
+            movimiento = -velocidadMovimiento;
             sr.flipX = true;
             animator.SetInteger("Estado", 1);
         }
+
+        rb.linearVelocity = new Vector2(movimiento, rb.linearVelocity.y);
+    }
+
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Enemigo"))
+        {
+            Debug.Log("Perdimos una vida por colisión con enemigo");
+        }
+
+        Debug.Log("Colisionado con: " + collision.gameObject.name);
+
     }
 }
